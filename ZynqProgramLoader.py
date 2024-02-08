@@ -5,11 +5,13 @@ from ftplib import FTP
 import os
 
 class FTPUploaderGUI:
-    def __init__(self, master):
+    def __init__(self, master, on_ip_click=None,):
         self.master = master
         self.frame = tk.Frame(master)
         self.frame.pack(fill=tk.BOTH, expand=True)
+        self.ftp_server_ip = None  # Initialize the FTP server IP attribute
         self.setup_gui()
+
         
     def setup_gui(self):
         # Dropdown for selecting the process
@@ -27,9 +29,9 @@ class FTPUploaderGUI:
         tk.Button(self.frame, text="Araştır", command=self.browse_file).grid(row=1, column=2, padx=5, pady=5)
 
         # FTP details entry
-        tk.Label(self.frame, text="FTP Server IP:").grid(row=2, column=0, sticky=tk.W)
-        self.ftp_server_ip = tk.Entry(self.frame, width=50)
-        self.ftp_server_ip.grid(row=2, column=1, padx=5, pady=5)
+        #tk.Label(self.frame, text="FTP Server IP:").grid(row=2, column=0, sticky=tk.W)
+        #self.ftp_server_ip = tk.Entry(self.frame, width=50)
+        #self.ftp_server_ip.grid(row=2, column=1, padx=5, pady=5)
 
         tk.Label(self.frame, text="Kullanıcı Adı:").grid(row=3, column=0, sticky=tk.W)
         self.username = tk.Entry(self.frame, width=50)
@@ -52,15 +54,21 @@ class FTPUploaderGUI:
     def cevir_ve_gonder(self):
         selected_method = self.method_var.get()
         input_file = self.input_file_path.get()
-        ftp_server = self.ftp_server_ip.get()
+        # Use the stored ftp_server_ip attribute
+        ftp_server = self.ftp_server_ip
         username = self.username.get()
         password = self.password.get()
+
+        # Your existing file processing and FTP upload logic
+        if not ftp_server:
+            messagebox.showerror("Hata", "FTP sunucusu IP adresi belirtilmemiş.")
+            return
 
         # Ensure the input file path is not empty
         if not input_file:
             messagebox.showerror("Hata", "Lütfen bir dosya seçin.")
             return
-
+        
         output_file = os.path.splitext(input_file)[0] + '.bin'
         # Process the input file according to the selected method
         if selected_method == 'PS':
@@ -90,3 +98,10 @@ class FTPUploaderGUI:
             messagebox.showinfo("Success", "Dosya Başarılı Şekilde Yüklendi!")
         except Exception as e:
             messagebox.showerror("FTP Error", f"Failed to upload file: {e}")
+
+        
+    def update_ftp_server_ip(self, ip_address):
+        #Update the FTP server IP address in the GUI.
+        self.ftp_server_ip = ip_address
+        #self.ftp_server_ip.delete(0, tk.END)  # Remove the current content
+        #self.ftp_server_ip.insert(0, ip_address)  # Insert the new IP address

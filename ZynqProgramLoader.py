@@ -44,6 +44,22 @@ class FTPUploaderGUI:
         # Upload button
         tk.Button(self.frame, text="Dosyayı Çevir ve Gönder", command=self.cevir_ve_gonder).grid(row=5, column=1, pady=10)
 
+        # Yazilim bilgileri butonu
+        tk.Button(self.frame, text="Checksum Bilgilerini Getir", command=self.yazilim_bilgilerini_getir).grid(row=1, column=7)
+
+        # Yazilim Bilgileri
+        FsblChecksum    = tk.StringVar()
+        PLChecksum      = tk.StringVar()
+        Main1Checksum   = tk.StringVar()
+        Main2Checksum   = tk.StringVar()
+        tk.Label(self.frame, text="Fsbl\t\t:").grid(row=2,column=6)
+        tk.Label(self.frame, text="PL\t\t:").grid(row=3, column=6)
+        tk.Label(self.frame, text="Ana Yazılım 1\t:").grid(row=4, column=6)
+        tk.Label(self.frame, text="Ana Yazılım 2\t:").grid(row=5, column=6)
+        tk.Label(self.frame, textvariable=FsblChecksum).grid(row=2, column=7)
+        tk.Label(self.frame, textvariable= PLChecksum).grid(row=3, column=7)
+        tk.Label(self.frame, textvariable= Main1Checksum).grid(row=4, column=7)
+        tk.Label(self.frame, textvariable= Main2Checksum).grid(row=5, column=7)
 
     def browse_file(self):
         filename = filedialog.askopenfilename(filetypes=(("ELF dosyaları", "*.elf"), ("Bit dosyaları", "*.*")))
@@ -105,3 +121,6 @@ class FTPUploaderGUI:
         self.ftp_server_ip = ip_address
         #self.ftp_server_ip.delete(0, tk.END)  # Remove the current content
         #self.ftp_server_ip.insert(0, ip_address)  # Insert the new IP address
+
+    def yazilim_bilgilerini_getir(self):
+        pass

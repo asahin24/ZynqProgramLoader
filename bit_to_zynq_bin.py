@@ -4,6 +4,9 @@ import os
 import struct
 import argparse
 
+#https://github.com/Xilinx/bootgen/blob/master/bitutils.h
+#https://github.com/Xilinx/bootgen/blob/master/bitutils.cpp
+
 def flip32(data):
     sl = struct.Struct('<I')
     sb = struct.Struct('>I')

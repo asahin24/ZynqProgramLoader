@@ -8,11 +8,14 @@ class ChecksumHesaplayici(ttk.Frame):
         super().__init__(master, **kwargs)
         self.master = master
         self.frame = tk.Frame(master)
-        self.frame.pack(fill=tk.BOTH, expand=True)
         self.setup_gui()
 
 
     def setup_gui(self):
+        # Baslik
+        self.baslik = tk.Label(self, text='Checksum Hesaplayıcı')
+        self.baslik.grid(row=0, column=1)
+
         # Dosya seçtirme butonu
         self.dosya_secme_butonu = tk.Button(self, text="Dosya seçin", command=self.checksum_hesapla)
         self.dosya_secme_butonu.grid(row=1, column=0, pady=5)
@@ -20,7 +23,7 @@ class ChecksumHesaplayici(ttk.Frame):
         # md5 checksum butonu
         self.md5checksum = tk.StringVar()
         self.checksum_entry = tk.Entry(self, width=35)
-        self.checksum_entry.grid(row=1, column=1, pady=5)
+        self.checksum_entry.grid(row=1, column=1,padx=5, pady=5)
         # self.checksum_entry.config(state='readonly')
 
     

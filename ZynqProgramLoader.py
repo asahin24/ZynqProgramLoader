@@ -5,6 +5,10 @@ from ftplib import FTP
 import os
 import socket
 import json
+if __name__ == "__main__":
+    from checksum_hesaplayici import ChecksumHesaplayici
+else:
+    from harici.ZynqProgramLoader.checksum_hesaplayici import ChecksumHesaplayici
 
 class FTPUploaderGUI(ttk.Frame):
     def __init__(self, master, on_ip_click=None, **kwargs):
@@ -85,6 +89,10 @@ class FTPUploaderGUI(ttk.Frame):
         MainApp2Entry = tk.Entry(self.frame, textvariable= Main2Checksum)
         MainApp2Entry.grid(row=5, column=7)
         MainApp2Entry.config(state='readonly')
+
+        # Checksum hesaplayıcı
+        checksum_cerceve = ChecksumHesaplayici(self.frame)
+        checksum_cerceve.grid(row=1, column=10, padx=20)
 
     def browse_file(self):
         filename = filedialog.askopenfilename(filetypes=(("ELF dosyaları", "*.elf"), ("Bit dosyaları", "*.*")))
@@ -168,7 +176,7 @@ if __name__ == "__main__":
     
     root = tk.Tk()
     root.title("Program Yukleyici")
-    root.geometry("800x600")
+    root.geometry("1080x720")
     
     ftploader_frame = FTPUploaderGUI(master=root)
     ftploader_frame.place(x=0, y=0, width=600, height=400)

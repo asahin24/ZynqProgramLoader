@@ -3,13 +3,24 @@ from tkinter import filedialog, messagebox, ttk
 import subprocess
 from ftplib import FTP
 import os
+import socket
+import json
+if __name__ == "__main__":
+    from checksum_hesaplayici import ChecksumHesaplayici
+else:
+    from harici.ZynqProgramLoader.checksum_hesaplayici import ChecksumHesaplayici
 
-class FTPUploaderGUI:
-    def __init__(self, master):
+class FTPUploaderGUI(ttk.Frame):
+    def __init__(self, master, on_ip_click=None, **kwargs):
+        super().__init__(master, **kwargs)
         self.master = master
         self.frame = tk.Frame(master)
         self.frame.pack(fill=tk.BOTH, expand=True)
+        self.kart_ip = None  # Initialize the FTP server IP attribute
+        self.UDP_sender_port = 40000
+        self.UDP_listener_port = 40001
         self.setup_gui()
+
         
     def setup_gui(self):
         # Dropdown for selecting the process
@@ -26,10 +37,10 @@ class FTPUploaderGUI:
         self.input_file_path.grid(row=1, column=1, padx=5, pady=5)
         tk.Button(self.frame, text="Araştır", command=self.browse_file).grid(row=1, column=2, padx=5, pady=5)
 
-        # FTP details entry
-        tk.Label(self.frame, text="FTP Server IP:").grid(row=2, column=0, sticky=tk.W)
-        self.ftp_server_ip = tk.Entry(self.frame, width=50)
-        self.ftp_server_ip.grid(row=2, column=1, padx=5, pady=5)
+        # FTP details entry     IP artik Konsol.py'den geliyor. O yuzden burasi yorumlandi.
+        #tk.Label(self.frame, text="FTP Server IP:").grid(row=2, column=0, sticky=tk.W)
+        #self.kart_ip = tk.Entry(self.frame, width=50)
+        #self.kart_ip.grid(row=2, column=1, padx=5, pady=5)
 
         tk.Label(self.frame, text="Kullanıcı Adı:").grid(row=3, column=0, sticky=tk.W)
         self.username = tk.Entry(self.frame, width=50)
@@ -42,6 +53,46 @@ class FTPUploaderGUI:
         # Upload button
         tk.Button(self.frame, text="Dosyayı Çevir ve Gönder", command=self.cevir_ve_gonder).grid(row=5, column=1, pady=10)
 
+        # Yazilim bilgileri butonu
+        tk.Button(self.frame, text="Checksum Bilgilerini Getir", command=self.checksum_bilgilerini_getir).grid(row=1, column=7)
+
+        # Yazilim Bilgileri
+        FsblChecksum    = tk.StringVar()
+        PLChecksum      = tk.StringVar()
+        Main1Checksum   = tk.StringVar()
+        Main2Checksum   = tk.StringVar()
+
+        FsblLabel = tk.Label(self.frame, text="Fsbl\t\t:")
+        FsblLabel.grid(row=2,column=6)
+
+        PLLabel = tk.Label(self.frame, text="PL\t\t:")
+        PLLabel.grid(row=3, column=6)
+
+        MainApp1Label = tk.Label(self.frame, text="Ana Yazılım 1\t:")
+        MainApp1Label.grid(row=4, column=6)
+
+        MainApp2Label = tk.Label(self.frame, text="Ana Yazılım 2\t:")
+        MainApp2Label.grid(row=5, column=6)
+
+        FsblEntry = tk.Entry(self.frame, textvariable= FsblChecksum)
+        FsblEntry.grid(row=2, column=7)
+        FsblEntry.config(state='readonly')
+
+        PLEntry = tk.Entry(self.frame, textvariable= PLChecksum)
+        PLEntry.grid(row=3, column=7)
+        PLEntry.config(state='readonly')
+
+        MainApp1Entry = tk.Entry(self.frame, textvariable= Main1Checksum)
+        MainApp1Entry.grid(row=4, column=7)
+        MainApp1Entry.config(state='readonly')
+
+        MainApp2Entry = tk.Entry(self.frame, textvariable= Main2Checksum)
+        MainApp2Entry.grid(row=5, column=7)
+        MainApp2Entry.config(state='readonly')
+
+        # Checksum hesaplayıcı
+        checksum_cerceve = ChecksumHesaplayici(self.frame)
+        checksum_cerceve.grid(row=1, column=10, padx=20)
 
     def browse_file(self):
         filename = filedialog.askopenfilename(filetypes=(("ELF dosyaları", "*.elf"), ("Bit dosyaları", "*.*")))
@@ -52,15 +103,21 @@ class FTPUploaderGUI:
     def cevir_ve_gonder(self):
         selected_method = self.method_var.get()
         input_file = self.input_file_path.get()
-        ftp_server = self.ftp_server_ip.get()
+        # Use the stored kart_ip attribute
+        ftp_server = self.kart_ip
         username = self.username.get()
         password = self.password.get()
+
+        # Your existing file processing and FTP upload logic
+        if not ftp_server:
+            messagebox.showerror("Hata", "FTP sunucusu IP adresi belirtilmemiş.")
+            return
 
         # Ensure the input file path is not empty
         if not input_file:
             messagebox.showerror("Hata", "Lütfen bir dosya seçin.")
             return
-
+        
         output_file = os.path.splitext(input_file)[0] + '.bin'
         # Process the input file according to the selected method
         if selected_method == 'PS':
@@ -90,3 +147,38 @@ class FTPUploaderGUI:
             messagebox.showinfo("Success", "Dosya Başarılı Şekilde Yüklendi!")
         except Exception as e:
             messagebox.showerror("FTP Error", f"Failed to upload file: {e}")
+
+        
+    def update_kart_ip(self, ip_address):
+        #Bu fonksiyon Konsol.py tarafindan cagirilir.
+        self.kart_ip = ip_address
+        #self.kart_ip.delete(0, tk.END)  # Remove the current content
+        #self.kart_ip.insert(0, ip_address)  # Insert the new IP address
+
+    def checksum_bilgilerini_getir(self):
+        message = {"komut": "bring_checksum", "parametreler": {}}
+        message_json = json.dumps(message).encode('utf-8')
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            if(self.kart_ip == None):
+                print("Kart secilmedi. Listeden aktif bir kart secin")
+            sock.sendto(message_json, (self.kart_ip, self.UDP_sender_port))
+            print(f"{self.kart_ip}:{self.UDP_sender_port}'a Checksum gonder komutu gonderildi.")
+        
+
+
+if __name__ == "__main__":
+
+    try:
+        from ctypes import windll
+        windll.shcore.SetProcessDpiAwareness(1)
+    except:
+        pass
+    
+    root = tk.Tk()
+    root.title("Program Yukleyici")
+    root.geometry("1080x720")
+    
+    ftploader_frame = FTPUploaderGUI(master=root)
+    ftploader_frame.place(x=0, y=0, width=600, height=400)
+
+    root.mainloop()
